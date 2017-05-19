@@ -18,14 +18,15 @@ repositories {
 
 dependencies {
     
-    compile project(':mo')
-    compile project(':neurosky-mindwave-eeg-data')
+    //compile project(':mo')
+    compile name: "multimodal-observer", version: '0.0.0'
+    compile name: 'neurosky-mindwave-eeg-data'
 
-    compile 'com.theeyetribe:eyetribe-java:0.9.60'
+    //compile 'com.theeyetribe:eyetribe-java:0.9.60'
     
     compile name: "docking-frames-core"
     compile name: "docking-frames-common"
-    compile name: 'i18n-1.1.2-SNAPSHOT' 
+    //compile name: 'i18n-1.1.2-SNAPSHOT' 
 }
 
 jar {
