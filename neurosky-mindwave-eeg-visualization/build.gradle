@@ -24,8 +24,8 @@ dependencies {
 
     //compile 'com.theeyetribe:eyetribe-java:0.9.60'
     
-    compile name: "docking-frames-core"
-    compile name: "docking-frames-common"
+//    compile name: "docking-frames-core"
+//    compile name: "docking-frames-common"
     //compile name: 'i18n-1.1.2-SNAPSHOT' 
 }
 

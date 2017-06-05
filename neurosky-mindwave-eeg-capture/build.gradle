@@ -27,8 +27,8 @@ dependencies {
     
     testCompile group: 'junit', name: 'junit', version: '4.10'
 
-    compile name: "docking-frames-core"
-    compile name: "docking-frames-common"
+//    compile name: "docking-frames-core"
+//    compile name: "docking-frames-common"
     //compile 'com.theeyetribe:eyetribe-java:0.9.60'
     /*
     // http://mvnrepository.com/artifact/commons-io/commons-io
