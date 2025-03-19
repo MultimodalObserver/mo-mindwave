@@ -5,7 +5,7 @@ sourceCompatibility = '1.8'
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 //mainClassName = 'core.App'
-version = '0.0.0'
+version = '1.0.0'
 
 repositories {
     mavenCentral()
@@ -19,13 +19,21 @@ repositories {
 
 dependencies {
     
+    //Si arroja error al tratar de construir la aplicación, cambie "implementation" por "compile" o viceversa, ya que varía dependiendo de la versión de Gradle.
+    
     //compile project(':mo')
-    compile name: "multimodal-observer", version: '0.0.0'
+    
+    implementation name: "multimodal-observer", version: '0.0.0'
+    implementation 'commons-io:commons-io:2.11.0'
+    implementation 'bibliothek:docking-frames-core'
+    implementation 'bibliothek:docking-frames-common'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.0'
+    
     
     //compile project(':neurosky-mindwave-eeg-data')
-    compile name: "neurosky-mindwave-eeg-data"
+    implementation name: "neurosky-mindwave-eeg-data", version: '0.0.0'
     
-    testCompile group: 'junit', name: 'junit', version: '4.10'
+    testImplementation group: 'junit', name: 'junit', version: '4.10'
 
 //    compile name: "docking-frames-core"
 //    compile name: "docking-frames-common"
@@ -61,6 +69,7 @@ jar {
     manifest {
         attributes( 'Implementation-Title'   : 'Gradle',
                     'Implementation-Version' :  version,
+                    'Main-Class': 'mo.eeg.capture.EEGCapturePlugin'
         )
     }
     

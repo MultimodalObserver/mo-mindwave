@@ -4,7 +4,7 @@ sourceCompatibility = '1.8'
 
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
-version = '0.0.0'
+version = '1.0.0'
 
 repositories {
     mavenCentral()
@@ -21,3 +21,18 @@ jar {
         )
     }
 }
+
+tasks.register("copyToPlugins") {
+    doLast {
+        def pluginDir = file("../PluginLauncher/build/libs/plugins")
+        if (!pluginDir.exists()) {
+            pluginDir.mkdirs()
+        }
+        copy {
+            from tasks.jar.archiveFile.get().asFile
+            into pluginDir
+        }
+    }
+}
+
+build.finalizedBy("copyToPlugins")

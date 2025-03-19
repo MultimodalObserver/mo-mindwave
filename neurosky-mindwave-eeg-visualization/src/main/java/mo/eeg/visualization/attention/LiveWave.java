@@ -1,66 +1,50 @@
 package mo.eeg.visualization.attention;
 
-import java.awt.Color;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Random;
-import javax.swing.JPanel;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.paint.Color;
 
-public class LiveWave extends JPanel {
-    private BufferedImage image;
-    private Graphics2D graphics;
-    
-    private int width = 500;
-    private int height = 200;
-    
-    private ArrayList<Variable> variables;
-    
-    private int whiteSpaceWidth = 50;
-    private int pointWidth = 1;
-    private int pointHeight = 2;
-    
-    private int pointDistance = 10;
-    
-    private int prevX;
-    private int prevY;
-    
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ResourceBundle;
+
+public class LiveWave extends BorderPane {
+
+    private final Canvas canvas;
+    private final GraphicsContext graphics;
+
+    private int whiteSpaceWidth = 50; 
+    private int pointDistance = 10; 
+
     private long lastTimestamp = 0;
 
+    private double prevX = 0;          
+    private double prevY = 0;
+
+    private final List<Variable> variables;
+    
+    ResourceBundle dialogBundle = ResourceBundle.getBundle("properties/principal");
+
     public LiveWave() {
-        image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        graphics = image.createGraphics();
-        graphics.setBackground(Color.white);
-        graphics.fillRect(0, 0, width, height);
+        canvas = new Canvas(500, 200); 
+        graphics = canvas.getGraphicsContext2D();
+        clearCanvas();
+
         variables = new ArrayList<>();
-        setDoubleBuffered(true);
-    }
-    
-    private static int next(int last) {
-        Random r = new Random();
-        int n = r.nextInt();
-        if (n % 3 == 0) {
-            last++;
-        } else if (n % 2 == 0) {
-            last--;
-        }
-        return last;
-    }
-    
-    private static int randInt(int min, int max) {
 
-        // Usually this can be a field rather than a method variable
-        Random rand = new Random();
+        this.setCenter(canvas);
 
-        // nextInt is normally exclusive of the top value,
-        // so add 1 to make it inclusive
-        int randomNum = rand.nextInt((max - min) + 1) + min;
-
-        return randomNum;
+        this.widthProperty().addListener((observable, oldValue, newValue) -> {
+            canvas.setWidth(newValue.doubleValue());
+            redraw();
+        });
+        this.heightProperty().addListener((observable, oldValue, newValue) -> {
+            canvas.setHeight(newValue.doubleValue());
+            redraw();
+        });
     }
-    
+
     public void addData(String variableName, long timestamp, double value) {
         for (Variable variable : variables) {
             if (variable.name.equals(variableName)) {
@@ -68,98 +52,94 @@ public class LiveWave extends JPanel {
             }
         }
     }
-    
-    private void draw(Variable v, long timestamp, double value) {
-        
-        if (timestamp > lastTimestamp) {
-            graphics.copyArea(0, 0, width, height, -pointDistance, 0);
-            graphics.setColor(graphics.getBackground());
-            graphics.fillRect(width-whiteSpaceWidth, 0, height-whiteSpaceWidth, height);
-        }
-        
-        lastTimestamp = timestamp;
-        
-        int mappedValue =  (int) ((int) (value - v.min) / (v.max - v.min) * height) ;
-        int inverted = height - mappedValue;
-        
-        graphics.setColor(v.color);
 
-        int x = width-whiteSpaceWidth;
-        int y = inverted;
-        
-        if (prevX == 0 && prevY == 0) {
-            prevX = x;
-            prevY = y;
+    private void draw(Variable variable, long timestamp, double value) {
+        if (timestamp > lastTimestamp) {
+            graphics.drawImage(canvas.snapshot(null, null), -pointDistance, 0);
+            clearRightMargin();
         }
-        
-        graphics.drawLine(prevX, prevY, x, y);
+
+        lastTimestamp = timestamp;
+
+        double scaledValue = (value - variable.min) / (variable.max - variable.min);
+        double mappedValue = scaledValue * canvas.getHeight();
+        double inverted = canvas.getHeight() - mappedValue;
+
+        graphics.setStroke(variable.color);
+        graphics.setLineWidth(1);
+
+        double x = canvas.getWidth() - whiteSpaceWidth;
+        double y = inverted;
+
+        if (prevX != 0 || prevY != 0) {
+            graphics.strokeLine(prevX, prevY, x, y);
+        }
         prevX = x - pointDistance;
         prevY = y;
-        //graphics.drawRect(width-whiteSpaceWidth, inverted, pointWidth, pointHeight);
 
-        FontMetrics m = graphics.getFontMetrics();
-        String val = value + "";
-        int valWidth = m.stringWidth(val);
-        graphics.drawString(val, width - valWidth, height - 40);
-        
-        String time = timestamp + "";
-        int timeWidth = m.stringWidth(time);
-        if (timeWidth < whiteSpaceWidth) {
-            graphics.drawString(time, width - timeWidth, height - 20);
-        } 
-
-        repaint();
+        drawValues(value, timestamp);
     }
 
     public void addVariable(String name, double min, double max, Color color) {
         for (Variable variable : variables) {
             if (variable.name.equals(name)) {
-                //todo log
-                return;
+                return; 
             }
         }
-        
-        Variable v = new Variable();
-        v.name = name;
-        v.min = min;
-        v.max = max;
-        if (color != null) {
-            v.color = color;
-        }
-        
-        variables.add(v);
+        variables.add(new Variable(name, min, max, color));
     }
-    
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        
-        int w = this.getWidth();
-        int h = this.getHeight();
-        
-        g.drawImage(image,
-                1, 1,
-                w - 0,
-                h - 0,
-                0, 0,
-                image.getWidth(), image.getHeight(),
-                null);
-    }
-    
-    private class Variable {
-        Color color = Color.BLACK;
-        String name;
-        double min = 0, max = height;
-    }
-    
+
     public void clear() {
-        Color prevBakground = graphics.getBackground();
-        Color prevColor = graphics.getColor();
-        graphics.setBackground(Color.white);
-        graphics.setColor(Color.white);
-        graphics.fillRect(0, 0, width, height);
-        graphics.setBackground(prevBakground);
-        graphics.setColor(prevColor);
-        
+        clearCanvas(); 
+        prevX = 0;
+        prevY = 0;
+        lastTimestamp = 0; 
+    }
+
+
+    private void clearCanvas() {
+        graphics.setFill(Color.WHITE);
+        graphics.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        graphics.setStroke(Color.BLACK);
+    }
+
+    private void clearRightMargin() {
+        graphics.setFill(Color.WHITE);
+        graphics.fillRect(canvas.getWidth() - whiteSpaceWidth, 0, whiteSpaceWidth, canvas.getHeight());
+    }
+
+    private void drawValues(double value, long timestamp) {
+        graphics.setFill(Color.WHITE);
+        double rectWidth = 200; 
+        double rectHeight = 50;
+        graphics.fillRect(0, 0, rectWidth, rectHeight);
+
+        graphics.setFill(Color.BLUE);
+
+        String attentionText = dialogBundle.getString("attention") + String.format("%.1f", value);
+        graphics.fillText(attentionText, 10, 20);
+
+        String timeText = dialogBundle.getString("time") + String.format("%d", timestamp);
+        graphics.fillText(timeText, 10, 40);
+    }
+
+
+    private void redraw() {
+        clearCanvas(); 
+    }
+
+    private static class Variable {
+
+        String name;
+        double min;
+        double max;
+        Color color;
+
+        public Variable(String name, double min, double max, Color color) {
+            this.name = name;
+            this.min = min;
+            this.max = max;
+            this.color = color;
+        }
     }
 }

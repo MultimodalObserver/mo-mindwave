@@ -4,7 +4,7 @@ sourceCompatibility = '1.8'
 
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
-version = '0.0.0'
+version = '1.0.0'
 
 repositories {
     mavenCentral()
@@ -17,10 +17,16 @@ repositories {
 }
 
 dependencies {
-    
+
+    //Si arroja error al tratar de construir la aplicación, cambie "implementation" por "compile" o viceversa, ya que varía dependiendo de la versión de Gradle.
+
     //compile project(':mo')
-    compile name: "multimodal-observer", version: '0.0.0'
-    compile name: 'neurosky-mindwave-eeg-data'
+    implementation name: "multimodal-observer", version: '0.0.0'
+    implementation name: 'neurosky-mindwave-eeg-data', version: '1.0.0'
+    implementation 'commons-io:commons-io:2.11.0'
+    implementation 'bibliothek:docking-frames-core'
+    implementation 'bibliothek:docking-frames-common'
+    
 
     //compile 'com.theeyetribe:eyetribe-java:0.9.60'
     
@@ -33,6 +39,7 @@ jar {
     manifest {
         attributes( 'Implementation-Title'   : 'Gradle',
                     'Implementation-Version' :  version,
+                    'Main-Class': 'mo.eeg.visualization.attention.EEGAttPlugin'
         )
     }
 /*    
